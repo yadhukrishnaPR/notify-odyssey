@@ -1,0 +1,70 @@
+name: Continuous BMS Checker
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:  
+
+jobs:
+  check-tickets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          python-version: '3.14'
+
+      # Install and configure Cloudflare WARP in proxy-only mode
+      - name: Install & Configure Cloudflare WARP
+        run: |
+          # 1. Add Cloudflare gpg key and repository
+          curl -fsSL https://pkg.cloudflareclient.com/pubkey.gpg | sudo gpg --yes --dearmor --output /usr/share/keyrings/cloudflare-warp-archive-keyring.gpg
+          echo "deb [signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg] https://pkg.cloudflareclient.com/ $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/cloudflare-warp.list
+          
+          # 2. Install warp client
+          sudo apt-get update && sudo apt-get install cloudflare-warp -y
+          
+          # 3. Start the warp service system daemon
+          sudo systemctl start warp-svc
+          
+          # 4. Configure warp-cli to proxy mode only (SOCKS5 on 127.0.0.1:40000)
+          # A short sleep ensures the background daemon is fully initialized first
+          sleep 2
+          warp-cli --accept-tos registration new
+          warp-cli --accept-tos mode proxy
+          warp-cli --accept-tos connect
+          
+          # 5. Verify the proxy is working and shows a Cloudflare IP
+          sleep 3
+          echo "Verifying WARP Proxy IP exit node:"
+          curl -x socks5h://127.0.0.1:40000 https://1.1.1.1/cdn-cgi/trace | grep ip
+
+      - name: Install dependencies
+        # Added pysocks dynamically so requests can handle socks5h:// URLs
+        run: |
+          uv sync --frozen
+          uv add pysocks
+
+      - name: Run checker
+        env:
+          PYTHONUNBUFFERED: 1 
+          NTFY_TOPIC: ${{ vars.NTFY_TOPIC }}
+          BMS_URL: ${{ vars.BMS_URL }}
+          BMS_DATES: ${{ vars.BMS_DATES }}
+        run: uv run main.py
+
+      - name: Commit updated state
+        if: always() 
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add bms_state.json
+          # Check for changes, commit, pull the latest updates from main, and then push
+          git diff --cached --quiet || (git commit -m "chore: update bms_state.json [skip ci]" && git pull --rebase origin main && git push)
