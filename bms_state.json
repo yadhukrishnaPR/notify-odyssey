@@ -96,6 +96,14 @@
       "price": "295.00",
       "status": "3"
     },
+    "AMBH|112878|20260717|PLATINUM": {
+      "venue": "AMB Cinemas: Gachibowli",
+      "time": "10:45 PM",
+      "date": "20260717",
+      "cat": "PLATINUM",
+      "price": "350.00",
+      "status": "0"
+    },
     "AMBH|112878|20260717|GOLD": {
       "venue": "AMB Cinemas: Gachibowli",
       "time": "10:45 PM",
@@ -109,6 +117,14 @@
       "time": "10:45 PM",
       "date": "20260717",
       "cat": "LOUNGERS",
+      "price": "295.00",
+      "status": "3"
+    },
+    "PRHN|252356|20260717|EXECUTIVE": {
+      "venue": "Prasads Multiplex: Hyderabad",
+      "time": "08:00 AM",
+      "date": "20260717",
+      "cat": "EXECUTIVE",
       "price": "295.00",
       "status": "3"
     },
@@ -151,6 +167,14 @@
       "cat": "LOUNGERS",
       "price": "295.00",
       "status": "3"
+    },
+    "ACAS|34526|20260717|RECLINER": {
+      "venue": "AAA Cinemas: Ameerpet",
+      "time": "12:00 PM",
+      "date": "20260717",
+      "cat": "RECLINER",
+      "price": "350.00",
+      "status": "0"
     },
     "ACAS|34526|20260717|GOLD": {
       "venue": "AAA Cinemas: Ameerpet",
