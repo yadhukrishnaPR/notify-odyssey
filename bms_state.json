@@ -1,1 +1,397 @@
-
+{
+  "shows": {
+    "AMBH|112874|20260717|PLATINUM": {
+      "venue": "AMB Cinemas: Gachibowli",
+      "time": "08:25 AM",
+      "date": "20260717",
+      "cat": "PLATINUM",
+      "price": "350.00",
+      "status": "0"
+    },
+    "AMBH|112874|20260717|GOLD": {
+      "venue": "AMB Cinemas: Gachibowli",
+      "time": "08:25 AM",
+      "date": "20260717",
+      "cat": "GOLD",
+      "price": "295.00",
+      "status": "2"
+    },
+    "AMBH|112874|20260717|LOUNGERS": {
+      "venue": "AMB Cinemas: Gachibowli",
+      "time": "08:25 AM",
+      "date": "20260717",
+      "cat": "LOUNGERS",
+      "price": "295.00",
+      "status": "3"
+    },
+    "AMBH|112875|20260717|PLATINUM": {
+      "venue": "AMB Cinemas: Gachibowli",
+      "time": "12:00 PM",
+      "date": "20260717",
+      "cat": "PLATINUM",
+      "price": "350.00",
+      "status": "0"
+    },
+    "AMBH|112875|20260717|GOLD": {
+      "venue": "AMB Cinemas: Gachibowli",
+      "time": "12:00 PM",
+      "date": "20260717",
+      "cat": "GOLD",
+      "price": "295.00",
+      "status": "2"
+    },
+    "AMBH|112875|20260717|LOUNGERS": {
+      "venue": "AMB Cinemas: Gachibowli",
+      "time": "12:00 PM",
+      "date": "20260717",
+      "cat": "LOUNGERS",
+      "price": "295.00",
+      "status": "3"
+    },
+    "AMBH|112876|20260717|PLATINUM": {
+      "venue": "AMB Cinemas: Gachibowli",
+      "time": "03:35 PM",
+      "date": "20260717",
+      "cat": "PLATINUM",
+      "price": "350.00",
+      "status": "0"
+    },
+    "AMBH|112876|20260717|GOLD": {
+      "venue": "AMB Cinemas: Gachibowli",
+      "time": "03:35 PM",
+      "date": "20260717",
+      "cat": "GOLD",
+      "price": "295.00",
+      "status": "2"
+    },
+    "AMBH|112876|20260717|LOUNGERS": {
+      "venue": "AMB Cinemas: Gachibowli",
+      "time": "03:35 PM",
+      "date": "20260717",
+      "cat": "LOUNGERS",
+      "price": "295.00",
+      "status": "3"
+    },
+    "AMBH|112877|20260717|PLATINUM": {
+      "venue": "AMB Cinemas: Gachibowli",
+      "time": "07:10 PM",
+      "date": "20260717",
+      "cat": "PLATINUM",
+      "price": "350.00",
+      "status": "0"
+    },
+    "AMBH|112877|20260717|GOLD": {
+      "venue": "AMB Cinemas: Gachibowli",
+      "time": "07:10 PM",
+      "date": "20260717",
+      "cat": "GOLD",
+      "price": "295.00",
+      "status": "2"
+    },
+    "AMBH|112877|20260717|LOUNGERS": {
+      "venue": "AMB Cinemas: Gachibowli",
+      "time": "07:10 PM",
+      "date": "20260717",
+      "cat": "LOUNGERS",
+      "price": "295.00",
+      "status": "3"
+    },
+    "AMBH|112878|20260717|PLATINUM": {
+      "venue": "AMB Cinemas: Gachibowli",
+      "time": "10:45 PM",
+      "date": "20260717",
+      "cat": "PLATINUM",
+      "price": "350.00",
+      "status": "0"
+    },
+    "AMBH|112878|20260717|GOLD": {
+      "venue": "AMB Cinemas: Gachibowli",
+      "time": "10:45 PM",
+      "date": "20260717",
+      "cat": "GOLD",
+      "price": "295.00",
+      "status": "2"
+    },
+    "AMBH|112878|20260717|LOUNGERS": {
+      "venue": "AMB Cinemas: Gachibowli",
+      "time": "10:45 PM",
+      "date": "20260717",
+      "cat": "LOUNGERS",
+      "price": "295.00",
+      "status": "3"
+    },
+    "PRHN|252356|20260717|EXECUTIVE": {
+      "venue": "Prasads Multiplex: Hyderabad",
+      "time": "08:00 AM",
+      "date": "20260717",
+      "cat": "EXECUTIVE",
+      "price": "295.00",
+      "status": "3"
+    },
+    "PRHN|252357|20260717|EXECUTIVE": {
+      "venue": "Prasads Multiplex: Hyderabad",
+      "time": "08:00 AM",
+      "date": "20260717",
+      "cat": "EXECUTIVE",
+      "price": "295.00",
+      "status": "2"
+    },
+    "PRHN|252364|20260717|EXECUTIVE": {
+      "venue": "Prasads Multiplex: Hyderabad",
+      "time": "11:20 AM",
+      "date": "20260717",
+      "cat": "EXECUTIVE",
+      "price": "295.00",
+      "status": "2"
+    },
+    "ACAS|34525|20260717|RECLINER": {
+      "venue": "AAA Cinemas: Ameerpet",
+      "time": "08:25 AM",
+      "date": "20260717",
+      "cat": "RECLINER",
+      "price": "350.00",
+      "status": "0"
+    },
+    "ACAS|34525|20260717|GOLD": {
+      "venue": "AAA Cinemas: Ameerpet",
+      "time": "08:25 AM",
+      "date": "20260717",
+      "cat": "GOLD",
+      "price": "295.00",
+      "status": "3"
+    },
+    "ACAS|34525|20260717|LOUNGERS": {
+      "venue": "AAA Cinemas: Ameerpet",
+      "time": "08:25 AM",
+      "date": "20260717",
+      "cat": "LOUNGERS",
+      "price": "295.00",
+      "status": "3"
+    },
+    "ACAS|34526|20260717|RECLINER": {
+      "venue": "AAA Cinemas: Ameerpet",
+      "time": "12:00 PM",
+      "date": "20260717",
+      "cat": "RECLINER",
+      "price": "350.00",
+      "status": "0"
+    },
+    "ACAS|34526|20260717|GOLD": {
+      "venue": "AAA Cinemas: Ameerpet",
+      "time": "12:00 PM",
+      "date": "20260717",
+      "cat": "GOLD",
+      "price": "295.00",
+      "status": "3"
+    },
+    "ACAS|34526|20260717|LOUNGERS": {
+      "venue": "AAA Cinemas: Ameerpet",
+      "time": "12:00 PM",
+      "date": "20260717",
+      "cat": "LOUNGERS",
+      "price": "295.00",
+      "status": "3"
+    },
+    "ACAS|34527|20260717|RECLINER": {
+      "venue": "AAA Cinemas: Ameerpet",
+      "time": "03:30 PM",
+      "date": "20260717",
+      "cat": "RECLINER",
+      "price": "350.00",
+      "status": "0"
+    },
+    "ACAS|34527|20260717|GOLD": {
+      "venue": "AAA Cinemas: Ameerpet",
+      "time": "03:30 PM",
+      "date": "20260717",
+      "cat": "GOLD",
+      "price": "295.00",
+      "status": "3"
+    },
+    "ACAS|34527|20260717|LOUNGERS": {
+      "venue": "AAA Cinemas: Ameerpet",
+      "time": "03:30 PM",
+      "date": "20260717",
+      "cat": "LOUNGERS",
+      "price": "295.00",
+      "status": "3"
+    },
+    "ACAS|34528|20260717|RECLINER": {
+      "venue": "AAA Cinemas: Ameerpet",
+      "time": "07:00 PM",
+      "date": "20260717",
+      "cat": "RECLINER",
+      "price": "350.00",
+      "status": "0"
+    },
+    "ACAS|34528|20260717|GOLD": {
+      "venue": "AAA Cinemas: Ameerpet",
+      "time": "07:00 PM",
+      "date": "20260717",
+      "cat": "GOLD",
+      "price": "295.00",
+      "status": "3"
+    },
+    "ACAS|34528|20260717|LOUNGERS": {
+      "venue": "AAA Cinemas: Ameerpet",
+      "time": "07:00 PM",
+      "date": "20260717",
+      "cat": "LOUNGERS",
+      "price": "295.00",
+      "status": "3"
+    },
+    "ACAS|34529|20260717|RECLINER": {
+      "venue": "AAA Cinemas: Ameerpet",
+      "time": "10:30 PM",
+      "date": "20260717",
+      "cat": "RECLINER",
+      "price": "350.00",
+      "status": "0"
+    },
+    "ACAS|34529|20260717|GOLD": {
+      "venue": "AAA Cinemas: Ameerpet",
+      "time": "10:30 PM",
+      "date": "20260717",
+      "cat": "GOLD",
+      "price": "295.00",
+      "status": "3"
+    },
+    "ACAS|34529|20260717|LOUNGERS": {
+      "venue": "AAA Cinemas: Ameerpet",
+      "time": "10:30 PM",
+      "date": "20260717",
+      "cat": "LOUNGERS",
+      "price": "295.00",
+      "status": "3"
+    },
+    "ACEV|16290|20260717|RECLINERS": {
+      "venue": "ART CINEMAS: Vanasthalipuram",
+      "time": "08:25 AM",
+      "date": "20260717",
+      "cat": "RECLINERS",
+      "price": "350.00",
+      "status": "0"
+    },
+    "ACEV|16290|20260717|GOLD": {
+      "venue": "ART CINEMAS: Vanasthalipuram",
+      "time": "08:25 AM",
+      "date": "20260717",
+      "cat": "GOLD",
+      "price": "295.00",
+      "status": "3"
+    },
+    "ACEV|16290|20260717|LOUNGERS": {
+      "venue": "ART CINEMAS: Vanasthalipuram",
+      "time": "08:25 AM",
+      "date": "20260717",
+      "cat": "LOUNGERS",
+      "price": "295.00",
+      "status": "3"
+    },
+    "ACEV|16291|20260717|RECLINERS": {
+      "venue": "ART CINEMAS: Vanasthalipuram",
+      "time": "11:55 AM",
+      "date": "20260717",
+      "cat": "RECLINERS",
+      "price": "350.00",
+      "status": "0"
+    },
+    "ACEV|16291|20260717|GOLD": {
+      "venue": "ART CINEMAS: Vanasthalipuram",
+      "time": "11:55 AM",
+      "date": "20260717",
+      "cat": "GOLD",
+      "price": "295.00",
+      "status": "3"
+    },
+    "ACEV|16291|20260717|LOUNGERS": {
+      "venue": "ART CINEMAS: Vanasthalipuram",
+      "time": "11:55 AM",
+      "date": "20260717",
+      "cat": "LOUNGERS",
+      "price": "295.00",
+      "status": "3"
+    },
+    "ACEV|16292|20260717|RECLINERS": {
+      "venue": "ART CINEMAS: Vanasthalipuram",
+      "time": "03:25 PM",
+      "date": "20260717",
+      "cat": "RECLINERS",
+      "price": "350.00",
+      "status": "0"
+    },
+    "ACEV|16292|20260717|GOLD": {
+      "venue": "ART CINEMAS: Vanasthalipuram",
+      "time": "03:25 PM",
+      "date": "20260717",
+      "cat": "GOLD",
+      "price": "295.00",
+      "status": "3"
+    },
+    "ACEV|16292|20260717|LOUNGERS": {
+      "venue": "ART CINEMAS: Vanasthalipuram",
+      "time": "03:25 PM",
+      "date": "20260717",
+      "cat": "LOUNGERS",
+      "price": "295.00",
+      "status": "3"
+    },
+    "ACEV|16293|20260717|RECLINERS": {
+      "venue": "ART CINEMAS: Vanasthalipuram",
+      "time": "06:55 PM",
+      "date": "20260717",
+      "cat": "RECLINERS",
+      "price": "350.00",
+      "status": "0"
+    },
+    "ACEV|16293|20260717|GOLD": {
+      "venue": "ART CINEMAS: Vanasthalipuram",
+      "time": "06:55 PM",
+      "date": "20260717",
+      "cat": "GOLD",
+      "price": "295.00",
+      "status": "3"
+    },
+    "ACEV|16293|20260717|LOUNGERS": {
+      "venue": "ART CINEMAS: Vanasthalipuram",
+      "time": "06:55 PM",
+      "date": "20260717",
+      "cat": "LOUNGERS",
+      "price": "295.00",
+      "status": "3"
+    },
+    "ACEV|16294|20260717|RECLINERS": {
+      "venue": "ART CINEMAS: Vanasthalipuram",
+      "time": "10:30 PM",
+      "date": "20260717",
+      "cat": "RECLINERS",
+      "price": "350.00",
+      "status": "0"
+    },
+    "ACEV|16294|20260717|GOLD": {
+      "venue": "ART CINEMAS: Vanasthalipuram",
+      "time": "10:30 PM",
+      "date": "20260717",
+      "cat": "GOLD",
+      "price": "295.00",
+      "status": "3"
+    },
+    "ACEV|16294|20260717|LOUNGERS": {
+      "venue": "ART CINEMAS: Vanasthalipuram",
+      "time": "10:30 PM",
+      "date": "20260717",
+      "cat": "LOUNGERS",
+      "price": "295.00",
+      "status": "3"
+    }
+  },
+  "dates": {
+    "20260717": "BOOKABLE",
+    "20260718": "AVAILABLE",
+    "20260719": "AVAILABLE",
+    "20260720": "AVAILABLE",
+    "20260721": "AVAILABLE",
+    "20260722": "AVAILABLE",
+    "20260723": "AVAILABLE"
+  }
+}
