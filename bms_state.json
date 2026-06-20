@@ -158,7 +158,7 @@
       "date": "20260717",
       "cat": "GOLD",
       "price": "295.00",
-      "status": "2"
+      "status": "1"
     },
     "PRHN|251804|20260717|GOLD": {
       "venue": "Prasads Multiplex: Hyderabad",
@@ -174,7 +174,7 @@
       "date": "20260717",
       "cat": "GOLD",
       "price": "295.00",
-      "status": "2"
+      "status": "1"
     },
     "PRHN|251806|20260717|GOLD": {
       "venue": "Prasads Multiplex: Hyderabad",
@@ -182,7 +182,7 @@
       "date": "20260717",
       "cat": "GOLD",
       "price": "295.00",
-      "status": "2"
+      "status": "1"
     },
     "ACAS|34525|20260717|RECLINER": {
       "venue": "AAA Cinemas: Ameerpet",
@@ -318,7 +318,7 @@
       "date": "20260717",
       "cat": "GOLD",
       "price": "295.00",
-      "status": "3"
+      "status": "2"
     },
     "ACEV|16290|20260717|LOUNGERS": {
       "venue": "ART CINEMAS: Vanasthalipuram",
@@ -330,7 +330,7 @@
     },
     "ACEV|16291|20260717|RECLINERS": {
       "venue": "ART CINEMAS: Vanasthalipuram",
-      "time": "11:55 AM",
+      "time": "12:00 PM",
       "date": "20260717",
       "cat": "RECLINERS",
       "price": "350.00",
@@ -338,7 +338,7 @@
     },
     "ACEV|16291|20260717|GOLD": {
       "venue": "ART CINEMAS: Vanasthalipuram",
-      "time": "11:55 AM",
+      "time": "12:00 PM",
       "date": "20260717",
       "cat": "GOLD",
       "price": "295.00",
@@ -346,7 +346,7 @@
     },
     "ACEV|16291|20260717|LOUNGERS": {
       "venue": "ART CINEMAS: Vanasthalipuram",
-      "time": "11:55 AM",
+      "time": "12:00 PM",
       "date": "20260717",
       "cat": "LOUNGERS",
       "price": "295.00",
@@ -354,7 +354,7 @@
     },
     "ACEV|16292|20260717|RECLINERS": {
       "venue": "ART CINEMAS: Vanasthalipuram",
-      "time": "03:25 PM",
+      "time": "03:30 PM",
       "date": "20260717",
       "cat": "RECLINERS",
       "price": "350.00",
@@ -362,7 +362,7 @@
     },
     "ACEV|16292|20260717|GOLD": {
       "venue": "ART CINEMAS: Vanasthalipuram",
-      "time": "03:25 PM",
+      "time": "03:30 PM",
       "date": "20260717",
       "cat": "GOLD",
       "price": "295.00",
@@ -370,7 +370,7 @@
     },
     "ACEV|16292|20260717|LOUNGERS": {
       "venue": "ART CINEMAS: Vanasthalipuram",
-      "time": "03:25 PM",
+      "time": "03:30 PM",
       "date": "20260717",
       "cat": "LOUNGERS",
       "price": "295.00",
@@ -378,7 +378,7 @@
     },
     "ACEV|16293|20260717|RECLINERS": {
       "venue": "ART CINEMAS: Vanasthalipuram",
-      "time": "06:55 PM",
+      "time": "07:00 PM",
       "date": "20260717",
       "cat": "RECLINERS",
       "price": "350.00",
@@ -386,15 +386,15 @@
     },
     "ACEV|16293|20260717|GOLD": {
       "venue": "ART CINEMAS: Vanasthalipuram",
-      "time": "06:55 PM",
+      "time": "07:00 PM",
       "date": "20260717",
       "cat": "GOLD",
       "price": "295.00",
-      "status": "3"
+      "status": "2"
     },
     "ACEV|16293|20260717|LOUNGERS": {
       "venue": "ART CINEMAS: Vanasthalipuram",
-      "time": "06:55 PM",
+      "time": "07:00 PM",
       "date": "20260717",
       "cat": "LOUNGERS",
       "price": "295.00",
@@ -437,6 +437,7 @@
     "20260725": "AVAILABLE",
     "20260726": "AVAILABLE",
     "20260727": "AVAILABLE",
-    "20260728": "AVAILABLE"
+    "20260728": "AVAILABLE",
+    "20260729": "AVAILABLE"
   }
 }
