@@ -387,9 +387,6 @@ def detect_changes(old_state, new_state):
 # ──────────────────────────────────────────────────────────────────────
 # NOTIFICATION (ntfy.sh)
 # ──────────────────────────────────────────────────────────────────────
-# ──────────────────────────────────────────────────────────────────────
-# NOTIFICATION (ntfy.sh)
-# ──────────────────────────────────────────────────────────────────────
 def _ntfy_worker(topic, message, headers):
     """Background worker that sends the notification 10 times, 1 minute apart."""
     for i in range(10):
@@ -461,6 +458,17 @@ def main():
     print("🚀 Starting 5h 55m BMS Monitor on GitHub Actions")
     print(f"  Event: {event_code} | Target Date: {date_list}")
     
+    # ────────────────────────────────────────────────────────────
+    # PHASE 1: HYDRATE INITIAL STATE (Eager Evaluation)
+    # ────────────────────────────────────────────────────────────
+    print("💾 Loading initial state from disk...")
+    current_state = load_state()
+    if not current_state:
+        print("  ℹ️ No existing state found. Proceeding with cold start (all scraped shows treated as NEW).")
+    else:
+        num_shows = len(current_state.get('shows', {}))
+        print(f"  ✅ Loaded existing state with {num_shows} tracked shows.")
+        
     start_time = time.time()
     # Exactly 5 hours and 55 minutes runner limit protection
     max_duration = (5 * 3600) + (55 * 60) 
@@ -487,20 +495,25 @@ def main():
             else:
                 filtered = filter_shows(all_shows, CONFIG["theatre"], CONFIG["time_period"], CONFIG["dates"])
                 
+                # Build the state for this exact moment
                 new_state = build_state(filtered, all_dates)
-                old_state = load_state()
 
-                changes = []
-                if old_state:
-                    changes = detect_changes(old_state, new_state)
-
-                save_state(new_state)
+                # ────────────────────────────────────────────────────────────
+                # PHASE 2: IMMEDIATE COMPARISON & ALERT
+                # ────────────────────────────────────────────────────────────
+                changes = detect_changes(current_state, new_state)
 
                 if changes:
                     print(f"\n[{now_str}] ⚡ {len(changes)} change(s) detected:")
                     for c in changes:
                         print(f"     {c}")
                     send_ntfy_alert(changes, movie_info)
+
+                # ────────────────────────────────────────────────────────────
+                # PHASE 3: SYNCHRONIZE STATE (Memory + Disk)
+                # ────────────────────────────────────────────────────────────
+                current_state = new_state
+                save_state(current_state)
 
         except Exception as e:
             print(f"[{now_str}] ❌ Error during execution: {e}")
