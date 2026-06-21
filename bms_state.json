@@ -94,7 +94,7 @@
       "date": "20260717",
       "cat": "LOUNGERS",
       "price": "295.00",
-      "status": "3"
+      "status": "2"
     },
     "AMBH|112878|20260717|PLATINUM": {
       "venue": "AMB Cinemas: Gachibowli",
@@ -110,7 +110,7 @@
       "date": "20260717",
       "cat": "GOLD",
       "price": "295.00",
-      "status": "2"
+      "status": "1"
     },
     "AMBH|112878|20260717|LOUNGERS": {
       "venue": "AMB Cinemas: Gachibowli",
@@ -118,7 +118,7 @@
       "date": "20260717",
       "cat": "LOUNGERS",
       "price": "295.00",
-      "status": "3"
+      "status": "2"
     },
     "PRHN|251802|20260717|GOLD": {
       "venue": "Prasads Multiplex: Hyderabad",
@@ -326,7 +326,7 @@
       "date": "20260717",
       "cat": "LOUNGERS",
       "price": "295.00",
-      "status": "3"
+      "status": "2"
     },
     "ACEV|16291|20260717|RECLINERS": {
       "venue": "ART CINEMAS: Vanasthalipuram",
@@ -342,7 +342,7 @@
       "date": "20260717",
       "cat": "GOLD",
       "price": "295.00",
-      "status": "3"
+      "status": "2"
     },
     "ACEV|16291|20260717|LOUNGERS": {
       "venue": "ART CINEMAS: Vanasthalipuram",
@@ -422,7 +422,7 @@
       "date": "20260717",
       "cat": "LOUNGERS",
       "price": "295.00",
-      "status": "3"
+      "status": "2"
     }
   },
   "dates": {
