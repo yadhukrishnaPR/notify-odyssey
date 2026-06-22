@@ -198,7 +198,7 @@
       "date": "20260717",
       "cat": "GOLD",
       "price": "295.00",
-      "status": "3"
+      "status": "2"
     },
     "ACAS|34525|20260717|LOUNGERS": {
       "venue": "AAA Cinemas: Ameerpet",
@@ -382,7 +382,7 @@
       "date": "20260717",
       "cat": "RECLINERS",
       "price": "350.00",
-      "status": "0"
+      "status": "1"
     },
     "ACEV|16293|20260717|GOLD": {
       "venue": "ART CINEMAS: Vanasthalipuram",
