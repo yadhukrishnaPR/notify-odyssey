@@ -1,5 +1,5 @@
-import requests # Standard requests for ntfy.sh
-from curl_cffi import requests as cffi_requests # Spoofing requests for BMS
+import requests
+from curl_cffi import requests as cffi_requests
 import time
 import json
 import os
@@ -50,8 +50,16 @@ POST_HEADERS = {
     "X-Device-Id": "7da7be353fed0515"
 }
 
+def quiet_git_pull():
+    # Runs git pull silently so it doesn't spam the console
+    subprocess.run(["git", "pull", "origin", "main", "--rebase"], capture_output=True, text=True, check=False)
+
+def quiet_git_push():
+    res = subprocess.run(["git", "push", "origin", "main"], capture_output=True, text=True, check=False)
+    return res.returncode == 0
+
 def load_state():
-    subprocess.run(["git", "pull", "origin", "main"], check=False)
+    quiet_git_pull()
     if os.path.exists(STATE_FILE):
         try:
             with open(STATE_FILE, "r") as f:
@@ -61,42 +69,46 @@ def load_state():
     return {}
 
 def save_state(state, commit_msg="Update seat state"):
-    subprocess.run(["git", "pull", "origin", "main"], check=False)
+    quiet_git_pull()
     with open(STATE_FILE, "w") as f:
         json.dump(state, f, indent=2)
     
-    subprocess.run(["git", "add", STATE_FILE], check=False)
+    subprocess.run(["git", "add", STATE_FILE], capture_output=True, check=False)
     status = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True)
     
     if STATE_FILE in status.stdout:
-        subprocess.run(["git", "commit", "-m", commit_msg], check=False)
-        for _ in range(3):
-            push_res = subprocess.run(["git", "push", "origin", "main"], check=False)
-            if push_res.returncode == 0:
+        print(f"[GIT] Committing changes to {STATE_FILE}...")
+        subprocess.run(["git", "commit", "-m", commit_msg], capture_output=True, check=False)
+        for attempt in range(3):
+            if quiet_git_push():
+                print(f"[GIT] Successfully pushed state to repository.")
                 break
+            print(f"[GIT] Push attempt {attempt+1} failed, retrying...")
             time.sleep(2)
-            subprocess.run(["git", "pull", "origin", "main"], check=False)
+            quiet_git_pull()
 
 def trigger_ntfy(message):
-    print(f"ALERTING: {message}")
-    for _ in range(3):
+    print(f"\n[!] ALERTING VIA NTFY: {message}")
+    for i in range(3):
         try:
-            requests.post(
+            resp = requests.post(
                 "https://ntfy.sh/odssy_stlyt",
                 data=message.encode('utf-8'),
                 headers={"Priority": "urgent"},
                 timeout=10
             )
+            print(f"    -> Ntfy ping {i+1}/3 sent! Status: {resp.status_code}")
         except Exception as e:
-            print(f"Ntfy failed: {e}")
-        time.sleep(15)
+            print(f"    -> Ntfy ping {i+1} failed: {e}")
+        if i < 2:
+            time.sleep(15)
 
 def fetch_sessions():
     sessions = []
     for date_code in DATES:
+        print(f"\n[NETWORK] Fetching sessions for Date: {date_code}...")
         url = f"https://in.bookmyshow.com/api/movies-data/seatlayout/v1/primary?eventCode={EVENT_CODE}&dateCode={date_code}&regionCode=HYD&venueCode={VENUE_CODE}"
         try:
-            # Using cffi_requests with Chrome impersonation to bypass WAF
             resp = cffi_requests.get(
                 url, 
                 headers=GET_HEADERS, 
@@ -104,29 +116,36 @@ def fetch_sessions():
                 impersonate="chrome", 
                 timeout=15
             )
+            print(f"    -> Response Status: {resp.status_code}")
             
             if resp.status_code != 200:
-                print(f"Failed fetching {date_code}. Status: {resp.status_code}")
-                print(f"Response Body: {resp.text[:200]}")
+                print(f"    -> Failed fetching {date_code}. Body: {resp.text[:100]}")
                 continue
                 
             data = resp.json()
-            for show in data.get("data", {}).get("showTimes", []):
+            shows = data.get("data", {}).get("showTimes", [])
+            print(f"    -> Found {len(shows)} total shows for this date. Filtering for PCX SCREEN...")
+            
+            pcx_count = 0
+            for show in shows:
                 if show.get("attributes") == "PCX SCREEN":
                     sessions.append({
                         "sessionId": show["sessionId"],
                         "dateCode": show["showDateCode"],
                         "time": show["showTime"]
                     })
+                    pcx_count += 1
+            print(f"    -> Filtered {pcx_count} PCX SCREEN sessions for {date_code}.")
+            
         except Exception as e:
-            print(f"Error fetching sessions for {date_code}: {e}")
+            print(f"    -> Error fetching sessions for {date_code}: {e}")
     return sessions
 
 def fetch_seat_layout(session_id):
     url = "https://services-in.bookmyshow.com/doTrans.aspx"
     payload = f"strParam4=&strParam5=Y&strParam6=&strParam7=N&strParam1={session_id}&strParam2=WEB&strParam3=&strVenueCode={VENUE_CODE}&lngTransactionIdentifier=0&strAppCode=MOBAND2&strFormat=json&strCommand=GETSEATLAYOUT"
     try:
-        # Using cffi_requests with Chrome impersonation
+        print(f"    -> [POST] {url} (Session: {session_id})")
         resp = cffi_requests.post(
             url, 
             headers=POST_HEADERS, 
@@ -135,14 +154,15 @@ def fetch_seat_layout(session_id):
             impersonate="chrome", 
             timeout=15
         )
+        print(f"    -> Status: {resp.status_code}")
         
         if resp.status_code != 200:
-            print(f"Failed layout fetch. Status: {resp.status_code}")
+            print(f"    -> Failed layout fetch. Body snippet: {resp.text[:100]}")
             return ""
             
         return resp.json().get("BookMyShow", {}).get("strData", "")
     except Exception as e:
-        print(f"Error fetching layout for session {session_id}: {e}")
+        print(f"    -> Exception during layout fetch for {session_id}: {e}")
         return ""
 
 def parse_layout(str_data):
@@ -174,40 +194,55 @@ def parse_layout(str_data):
 def main():
     start_time = time.time()
     
+    print("==================================================")
+    print("🚀 STARTING BMS SEAT SCRAPER")
+    print("==================================================")
     print("Fetching valid sessions via Cloudflare WARP proxy + Chrome TLS fingerprint...")
     target_sessions = fetch_sessions()
-    print(f"Found {len(target_sessions)} PCX SCREEN sessions.")
     
-    if not target_sessions:
+    total_sessions = len(target_sessions)
+    print(f"\n✅ Found a total of {total_sessions} PCX SCREEN sessions to monitor.")
+    print("==================================================")
+    
+    if total_sessions == 0:
         print("No valid sessions found. Exiting.")
         return
 
+    print("\n[GIT] Loading initial state from repository...")
     state = load_state()
     is_first_run = len(state) == 0
     if is_first_run:
-        print("Empty state found. Initializing baseline silently...")
+        print("[STATE] Empty state found. Initializing baseline silently...")
+    else:
+        print(f"[STATE] Loaded existing state for {len(state)} sessions.")
 
     cycle_count = 1
     
     while (time.time() - start_time) < MAX_RUNTIME_SECONDS:
-        print(f"--- Starting Polling Cycle {cycle_count} ---")
+        print(f"\n==================================================")
+        print(f"🔄 STARTING POLLING CYCLE {cycle_count}")
+        print(f"==================================================")
         
         state = load_state()
         state_changed_this_cycle = False
         
-        for session in target_sessions:
+        for index, session in enumerate(target_sessions, 1):
             s_id = session["sessionId"]
             s_date = session["dateCode"]
             s_time = session["time"]
             
+            print(f"\n[{index}/{total_sessions}] Checking Session {s_id} (Date: {s_date} Time: {s_time})")
+            print("    -> Sleeping for 15 seconds (Rate Limit Prevention)...")
             time.sleep(15) 
             
             str_data = fetch_seat_layout(s_id)
             if not str_data:
+                print("    -> Error: Received empty strData.")
                 continue
                 
             current_seats = parse_layout(str_data)
             current_total = sum(len(seats) for seats in current_seats.values())
+            print(f"    -> Parse successful. Current Available Seats: {current_total}")
             
             if s_id not in state:
                 state[s_id] = {"date": s_date, "time": s_time, "total": 0, "rows": {}}
@@ -227,7 +262,7 @@ def main():
                     unblocked_rows_list.append(row)
             
             if newly_unblocked_count > 0:
-                print(f"Detected unblocks! Session {s_id} (+{newly_unblocked_count} seats)")
+                print(f"    -> 🟢 DETECTED UNBLOCKS: +{newly_unblocked_count} new seats!")
                 if not is_first_run:
                     rows_str = ", ".join(sorted(unblocked_rows_list))
                     msg = f"Seats unblocked at {rows_str} row. Date: {s_date} Time: {s_time} total {newly_unblocked_count} seats are unblocked."
@@ -241,18 +276,23 @@ def main():
                 state[s_id]["rows"] = current_seats
                 state[s_id]["total"] = current_total
                 state_changed_this_cycle = True
-                print(f"Seats booked for Session {s_id}. Total dropped from {previous_total} to {current_total}.")
+                print(f"    -> 🔴 Seats booked. Total dropped from {previous_total} down to {current_total}.")
+            else:
+                print("    -> ⚪ No changes detected.")
 
         if state_changed_this_cycle:
+            print("\n[STATE] Cycle finished. Changes detected, saving to Git...")
             save_state(state, f"State update at cycle {cycle_count}")
+        else:
+            print("\n[STATE] Cycle finished. No changes detected.")
             
         if is_first_run:
             is_first_run = False
-            print("First run baseline established.")
+            print("[STATE] First run baseline has been successfully established.")
             
         cycle_count += 1
         
-    print("Time limit reached (5h 55m). Saving final state and gracefully shutting down.")
+    print("\n🏁 Time limit reached (5h 55m). Saving final state and gracefully shutting down.")
     final_state = load_state()
     save_state(final_state, "Final runner shutdown save")
 
