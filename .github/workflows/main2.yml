@@ -1,0 +1,108 @@
+name: BookMyShow Seat Availability Checker
+
+# Allows you to trigger this workflow manually from the Actions tab
+on: 
+  workflow_dispatch:
+
+jobs:
+  check-seats:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Fetch Seat Layout Data (POST Request)
+        # Using curl to send the exact headers and form-urlencoded payload.
+        # --compressed automatically handles the gzip, deflate, br Accept-Encoding.
+        run: |
+          curl -s -X POST 'https://services-in.bookmyshow.com/doTrans.aspx' \
+            -H 'Host: services-in.bookmyshow.com' \
+            -H 'X-Timeout: 10' \
+            -H 'X-Bms-Id: 1.24030869.1782364639801' \
+            -H 'X-Device-Id: 7da7be353fed0515' \
+            -H 'X-Latitude: 17.385044' \
+            -H 'X-Subregion-Code: HYD' \
+            -H 'X-App-Code: MOBAND2' \
+            -H 'User-Agent: Dalvik/2.1.0 (Linux; U; Android 10; Android SDK built for x86_64 Build/QSR1.211112.011)' \
+            -H 'X-Li-Flow: false' \
+            -H 'X-App-Version-Code: 18234' \
+            -H 'X-Location-Selection: manual' \
+            -H 'X-Network: Android | WIFI' \
+            -H 'X-Longitude: 78.48667' \
+            -H 'X-Platform: AND' \
+            -H 'X-Region-Code: HYD' \
+            -H 'X-Region-Slug: hyderabad' \
+            -H 'Lang: en' \
+            -H 'X-Advertiser-Id: f1faf9d2-4db2-4bb7-8e6b-928a56d7a1b8' \
+            -H 'X-Screen-Width: 1440' \
+            -H 'X-Screen-Density: 3.5' \
+            -H 'X-Platform-Code: ANDROID' \
+            -H 'X-Location-Shared: false' \
+            -H 'X-Device-Manufacturer: google' \
+            -H 'X-Segments: false' \
+            -H 'X-Screen-Height: 2872' \
+            -H 'X-Geohash: tep' \
+            -H 'X-App-Version: 18.2.3' \
+            -H 'Content-Type: application/x-www-form-urlencoded' \
+            -H 'Accept-Encoding: gzip, deflate, br' \
+            --compressed \
+            -d 'strParam4=&strParam5=Y&strParam6=&strParam7=N&strParam1=251803&strParam2=WEB&strParam3=&strVenueCode=PRHN&lngTransactionIdentifier=0&strAppCode=MOBAND2&strFormat=json&strCommand=GETSEATLAYOUT' \
+            -o response.json
+
+      - name: Parse and Log Available Seats
+        # An inline Python script that loads the JSON, decodes the strData string,
+        # checks for "A1" (Available seat status) and outputs the results nicely.
+        run: |
+          python3 -c '
+          import json
+          import re
+          import sys
+          
+          try:
+              with open("response.json", "r") as f:
+                  data = json.load(f)
+              
+              str_data = data.get("BookMyShow", {}).get("strData", "")
+              if not str_data:
+                  print("Error: No strData found in the response. The show might be expired or the session is invalid.")
+                  sys.exit(1)
+                  
+              # Split the header info from the row layout (separated by ||)
+              parts = str_data.split("||")
+              rows = parts[1].split("|") if len(parts) > 1 else parts[0].split("|")
+                  
+              total_available = 0
+              
+              print("==== SEAT AVAILABILITY REPORT ====\n")
+              
+              for row in rows:
+                  if not row: continue
+                  elements = row.split(":")
+                  
+                  # elements[0] is index, elements[1] is Row Letter
+                  if len(elements) < 3: continue 
+                  
+                  row_letter = elements[1]
+                  seats = elements[2:]
+                  
+                  available_seats = []
+                  for seat in seats:
+                      # Status "A1" means available. The regex extracts the seat number before the "+"
+                      # E.g., A10145+2 matches and captures "45"
+                      match = re.match(r"^A1\d{2}([A-Za-z0-9]+)\+", seat)
+                      if match:
+                          available_seats.append(match.group(1))
+                          
+                  count = len(available_seats)
+                  total_available += count
+                  
+                  if count > 0:
+                      print(f"Row {row_letter}: {count} seats available -> [ {', '.join(available_seats)} ]")
+                  else:
+                      print(f"Row {row_letter}: Completely booked.")
+                      
+              print("\n==================================")
+              print(f"TOTAL AVAILABLE SEATS: {total_available}")
+              
+          except Exception as e:
+              print(f"Fatal error while parsing: {e}")
+              sys.exit(1)
+          '
