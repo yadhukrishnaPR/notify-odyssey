@@ -86,7 +86,7 @@ jobs:
                       # Format: A + Status(1) + TypeCode(01) + SeatNumber(...) + +GridPos
                       # We want to capture the part between the TypeCode and the "+"
                       # Using a regex to find A1, skip the next 2 digits, capture the rest until "+"
-                      match = re.search(r"A1\d{2}(\d+)\+", seat)
+                      match = re.search(r"A[^2]\d{2}(\d+)\+", seat)
                       if match:
                           available_in_row.append(match.group(1))
                           
