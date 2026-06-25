@@ -1,4 +1,5 @@
-import requests
+import requests # Standard requests for ntfy.sh
+from curl_cffi import requests as cffi_requests # Spoofing requests for BMS
 import time
 import json
 import os
@@ -13,7 +14,7 @@ EVENT_CODE = "ET00452034"
 STATE_FILE = "state.json"
 MAX_RUNTIME_SECONDS = (5 * 3600) + (55 * 60) # 5 hours 55 mins
 
-# Cloudflare WARP local proxy (Default port is 40000)
+# Cloudflare WARP local proxy
 PROXIES = {
     "http": "socks5://127.0.0.1:40000",
     "https": "socks5://127.0.0.1:40000"
@@ -27,7 +28,7 @@ GET_HEADERS = {
     "X-App-Code": "MOBAND2",
     "User-Agent": "Dalvik/2.1.0 (Linux; U; Android 10; Android SDK built for x86_64 Build/QSR1.211112.011)",
     "X-App-Version": "18.2.3",
-    "Accept-Encoding": "gzip, deflate", # Keep br removed
+    "Accept-Encoding": "gzip, deflate",
     "Connection": "keep-alive",
     "X-Bms-Id": "1.24030869.1782364639801",
     "X-Device-Id": "7da7be353fed0515",
@@ -80,7 +81,6 @@ def trigger_ntfy(message):
     print(f"ALERTING: {message}")
     for _ in range(3):
         try:
-            # Deliberately NOT using proxies here so Ntfy connects normally
             requests.post(
                 "https://ntfy.sh/odssy_stlyt",
                 data=message.encode('utf-8'),
@@ -96,8 +96,14 @@ def fetch_sessions():
     for date_code in DATES:
         url = f"https://in.bookmyshow.com/api/movies-data/seatlayout/v1/primary?eventCode={EVENT_CODE}&dateCode={date_code}&regionCode=HYD&venueCode={VENUE_CODE}"
         try:
-            # Using proxies=PROXIES to route through WARP
-            resp = requests.get(url, headers=GET_HEADERS, proxies=PROXIES, timeout=15)
+            # Using cffi_requests with Chrome impersonation to bypass WAF
+            resp = cffi_requests.get(
+                url, 
+                headers=GET_HEADERS, 
+                proxies=PROXIES, 
+                impersonate="chrome", 
+                timeout=15
+            )
             
             if resp.status_code != 200:
                 print(f"Failed fetching {date_code}. Status: {resp.status_code}")
@@ -120,8 +126,15 @@ def fetch_seat_layout(session_id):
     url = "https://services-in.bookmyshow.com/doTrans.aspx"
     payload = f"strParam4=&strParam5=Y&strParam6=&strParam7=N&strParam1={session_id}&strParam2=WEB&strParam3=&strVenueCode={VENUE_CODE}&lngTransactionIdentifier=0&strAppCode=MOBAND2&strFormat=json&strCommand=GETSEATLAYOUT"
     try:
-        # Using proxies=PROXIES to route through WARP
-        resp = requests.post(url, headers=POST_HEADERS, data=payload, proxies=PROXIES, timeout=15)
+        # Using cffi_requests with Chrome impersonation
+        resp = cffi_requests.post(
+            url, 
+            headers=POST_HEADERS, 
+            data=payload, 
+            proxies=PROXIES, 
+            impersonate="chrome", 
+            timeout=15
+        )
         
         if resp.status_code != 200:
             print(f"Failed layout fetch. Status: {resp.status_code}")
@@ -149,7 +162,6 @@ def parse_layout(str_data):
         
         available_in_row = []
         for seat in seats:
-            # Capture any status except "2"
             match = re.search(r"A[^2]\d{2}(\d+)\+", seat)
             if match:
                 available_in_row.append(match.group(1))
@@ -162,7 +174,7 @@ def parse_layout(str_data):
 def main():
     start_time = time.time()
     
-    print("Fetching valid sessions via Cloudflare WARP proxy...")
+    print("Fetching valid sessions via Cloudflare WARP proxy + Chrome TLS fingerprint...")
     target_sessions = fetch_sessions()
     print(f"Found {len(target_sessions)} PCX SCREEN sessions.")
     
