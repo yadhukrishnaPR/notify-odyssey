@@ -293,11 +293,17 @@ def main():
             
             if newly_unblocked_count > 0:
                 print(f"    -> 🟢 DETECTED UNBLOCKS: +{newly_unblocked_count} new seats!")
-                if not is_first_run:
-                    rows_str = ", ".join(sorted(unblocked_rows_list))
-                    msg = f"Seats unblocked at {rows_str} row. Date: {s_date} Time: {s_time} total {newly_unblocked_count} seats are unblocked."
-                    trigger_ntfy(msg)
                 
+                if not is_first_run:
+                    # Check if the unblocked seats meet the minimum threshold of 6
+                    if newly_unblocked_count >= 6:
+                        rows_str = ", ".join(sorted(unblocked_rows_list))
+                        msg = f"Seats unblocked at {rows_str} row. Date: {s_date} Time: {s_time} total {newly_unblocked_count} seats are unblocked."
+                        trigger_ntfy(msg)
+                    else:
+                        print(f"    -> 🟡 Less than 6 seats unblocked ({newly_unblocked_count}). Skipping notification to avoid spam.")
+                
+                # Always update the state so we don't double-count these seats in the next cycle
                 state[s_id]["rows"] = current_seats
                 state[s_id]["total"] = current_total
                 state_changed_this_cycle = True
