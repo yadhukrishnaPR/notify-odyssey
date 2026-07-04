@@ -47,6 +47,18 @@ POST_HEADERS = {
     "Accept-Encoding": "gzip, deflate"
 }
 
+def humanize_date(date_str):
+    dt = datetime.strptime(date_str, "%Y%m%d")
+    day = dt.day
+
+    if 11 <= (day % 100) <= 13:
+        suffix = 'th'
+    else:
+        suffix = ['th', 'st', 'nd', 'rd', 'th'][min(day % 10, 4)]
+        
+    month_name = dt.strftime("%B")
+    return f"{day}{suffix} {month_name}"
+
 def quiet_git_pull():
     subprocess.run(["git", "pull", "origin", "main", "--rebase"], capture_output=True, text=True, check=False)
 
@@ -298,7 +310,13 @@ def main():
                     # Check if the unblocked seats meet the minimum threshold of 6
                     if newly_unblocked_count >= 6:
                         rows_str = ", ".join(sorted(unblocked_rows_list))
-                        msg = f"Seats unblocked at {rows_str} row. Date: {s_date} Time: {s_time} total {newly_unblocked_count} seats are unblocked."
+                        human_date = humanize_date(s_date)
+                        
+                        msg = (
+                            f"ODSY unblock at {rows_str} row. Date: {s_date}. Time: {s_time}. {newly_unblocked_count} seats unblocked.\n\n"
+                            f"{rows_str} rows unblocked for #TheOdyssey at Prasads PCX Screen.\n\n"
+                            f"{human_date}, {s_time}"
+                        )
                         trigger_ntfy(msg)
                     else:
                         print(f"    -> 🟡 Less than 6 seats unblocked ({newly_unblocked_count}). Skipping notification to avoid spam.")
