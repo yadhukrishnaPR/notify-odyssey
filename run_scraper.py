@@ -60,40 +60,72 @@ def humanize_date(date_str):
     return f"{day}{suffix} {month_name}"
 
 def quiet_git_pull():
-    subprocess.run(["git", "pull", "origin", "main", "--rebase"], capture_output=True, text=True, check=False)
+    """Fetches and hard resets to exactly match remote. Wipes any failed local commits to prevent JSON merge conflicts."""
+    subprocess.run(["git", "fetch", "origin", "main"], capture_output=True, check=False)
+    subprocess.run(["git", "reset", "--hard", "origin/main"], capture_output=True, check=False)
 
 def quiet_git_push():
     res = subprocess.run(["git", "push", "origin", "main"], capture_output=True, text=True, check=False)
     return res.returncode == 0
 
-def load_state():
-    quiet_git_pull()
+def read_local_state():
+    """Reads the JSON from disk without touching Git."""
     if os.path.exists(STATE_FILE):
         try:
             with open(STATE_FILE, "r") as f:
                 return json.load(f)
-        except json.JSONDecodeError:
+        except json.JSONDecodeError as e:
+            print(f"[STATE] ⚠️ JSON Error reading state: {e}")
             return {}
     return {}
 
-def save_state(state, commit_msg="Update seat state"):
+def load_state():
+    """Syncs with remote and loads the freshest state into memory."""
     quiet_git_pull()
-    with open(STATE_FILE, "w") as f:
-        json.dump(state, f, indent=2)
-    
-    subprocess.run(["git", "add", STATE_FILE], capture_output=True, check=False)
-    status = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True)
-    
-    if STATE_FILE in status.stdout:
-        print(f"[GIT] Committing changes to {STATE_FILE}...")
-        subprocess.run(["git", "commit", "-m", commit_msg], capture_output=True, check=False)
-        for attempt in range(3):
+    return read_local_state()
+
+def save_state(deltas, commit_msg="Update seat state"):
+    """
+    Takes a dictionary of local session changes (deltas), cleanly merges them with the 
+    absolute latest Git state, and pushes. Retries seamlessly if another runner pushes first.
+    Returns the newly merged state so the runner can update its memory.
+    """
+    for attempt in range(3):
+        # 1. Force sync local repo with remote (drops any failed local commits from prior attempts)
+        quiet_git_pull()
+        
+        # 2. Read the newly synced remote state
+        latest_state = read_local_state()
+        
+        # 3. Merge our locally tracked changes (deltas) into this state
+        for s_id, s_data in deltas.items():
+            latest_state[s_id] = s_data
+            
+        # 4. Save the merged state to disk
+        with open(STATE_FILE, "w") as f:
+            json.dump(latest_state, f, indent=2)
+            
+        # 5. Commit
+        subprocess.run(["git", "add", STATE_FILE], capture_output=True, check=False)
+        status = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True)
+        
+        if STATE_FILE in status.stdout:
+            print(f"[GIT] Committing changes to {STATE_FILE} (Attempt {attempt+1})...")
+            subprocess.run(["git", "commit", "-m", commit_msg], capture_output=True, check=False)
+            
+            # 6. Push
             if quiet_git_push():
-                print(f"[GIT] Successfully pushed state to repository.")
-                break
-            print(f"[GIT] Push attempt {attempt+1} failed, retrying...")
-            time.sleep(2)
-            quiet_git_pull()
+                print(f"[GIT] Successfully pushed merged state to repository.")
+                return latest_state
+            else:
+                print(f"[GIT] Push attempt {attempt+1} failed (likely concurrent push). Retrying merge...")
+                time.sleep(2)
+        else:
+            print("[GIT] Merged state is identical to remote. Nothing to push.")
+            return latest_state
+            
+    print("[GIT] ❌ Failed to push after 3 attempts. Local memory updated with last known merge.")
+    return latest_state
 
 def trigger_ntfy(message):
     print(f"\n[!] ALERTING VIA NTFY: {message}")
@@ -110,7 +142,6 @@ def trigger_ntfy(message):
             print(f"    -> Ntfy ping {i+1} failed: {e}")
 
 def toggle_warp():
-    """Toggles Cloudflare WARP on/off and updates the proxy state."""
     global USE_WARP
     if USE_WARP:
         print("    -> 🚨 [IP ROTATION] WARP is currently ON. Disconnecting WARP (Switching to Runner IP)...")
@@ -119,13 +150,11 @@ def toggle_warp():
     else:
         print("    -> 🚨 [IP ROTATION] WARP is currently OFF. Connecting to WARP (Switching to Cloudflare Proxy)...")
         subprocess.run(["warp-cli", "--accept-tos", "connect"], capture_output=True, check=False)
-        time.sleep(5)  # Wait for the tunnel to establish
+        time.sleep(5)
         USE_WARP = True
 
 def make_bms_request(method, url, max_retries=3, **kwargs):
-    """Network wrapper that intercepts 429s, toggles WARP, and retries the request seamlessly."""
     for attempt in range(1, max_retries + 1):
-        # Dynamically apply proxies only if WARP is ON
         current_proxies = PROXIES if USE_WARP else None
         
         try:
@@ -136,13 +165,12 @@ def make_bms_request(method, url, max_retries=3, **kwargs):
             
             print(f"    -> Status: {resp.status_code} (Using WARP: {USE_WARP})")
             
-            # Catch Rate Limits
             if resp.status_code == 429:
                 print(f"    -> ⚠️ Rate limited (429) on attempt {attempt}/{max_retries}.")
                 if attempt < max_retries:
                     toggle_warp()
                     print("    -> Retrying request...")
-                    continue # Retry loop
+                    continue
                 else:
                     print("    -> ❌ Max retries reached for this request.")
             
@@ -263,8 +291,9 @@ def main():
         print(f"🔄 STARTING POLLING CYCLE {cycle_count}")
         print(f"==================================================")
         
-        state = load_state()
-        state_changed_this_cycle = False
+        # Pull latest state before starting the cycle
+        state = load_state() 
+        deltas = {} # Track ONLY the sessions that change during this cycle
         
         for index, session in enumerate(target_sessions, 1):
             s_id = session["sessionId"]
@@ -305,7 +334,6 @@ def main():
                 print(f"    -> 🟢 DETECTED UNBLOCKS: +{newly_unblocked_count} new seats!")
                 
                 if not is_first_run:
-                    # Check if the unblocked seats meet the minimum threshold of 6
                     if newly_unblocked_count >= 6:
                         rows_str = ", ".join(sorted(unblocked_rows_list))
                         human_date = humanize_date(s_date)
@@ -319,22 +347,26 @@ def main():
                     else:
                         print(f"    -> 🟡 Less than 6 seats unblocked ({newly_unblocked_count}). Skipping notification to avoid spam.")
                 
-                # Always update the state so we don't double-count these seats in the next cycle
+                # Update memory & Track Delta
                 state[s_id]["rows"] = current_seats
                 state[s_id]["total"] = current_total
-                state_changed_this_cycle = True
+                deltas[s_id] = state[s_id]
 
             elif current_total < previous_total:
+                print(f"    -> 🔴 Seats booked. Total dropped from {previous_total} down to {current_total}.")
+                # Update memory & Track Delta
                 state[s_id]["rows"] = current_seats
                 state[s_id]["total"] = current_total
-                state_changed_this_cycle = True
-                print(f"    -> 🔴 Seats booked. Total dropped from {previous_total} down to {current_total}.")
+                deltas[s_id] = state[s_id]
+                
             else:
                 print("    -> ⚪ No changes detected.")
 
-        if state_changed_this_cycle:
-            print("\n[STATE] Cycle finished. Changes detected, saving to Git...")
-            save_state(state, f"State update at cycle {cycle_count}")
+        if deltas:
+            print("\n[STATE] Cycle finished. Changes detected, merging and saving to Git...")
+            # Save state will handle merging our deltas with the newest Git data
+            # and return the freshly synced state to update our memory
+            state = save_state(deltas, f"State update at cycle {cycle_count}")
         else:
             print("\n[STATE] Cycle finished. No changes detected.")
             
@@ -344,9 +376,7 @@ def main():
             
         cycle_count += 1
         
-    print("\n🏁 Time limit reached (5h 55m). Saving final state and gracefully shutting down.")
-    final_state = load_state()
-    save_state(final_state, "Final runner shutdown save")
+    print("\n🏁 Time limit reached (5h 55m). Gracefully shutting down.")
 
 if __name__ == "__main__":
     main()
