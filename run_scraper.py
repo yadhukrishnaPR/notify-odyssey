@@ -97,7 +97,7 @@ def save_state(state, commit_msg="Update seat state"):
 
 def trigger_ntfy(message):
     print(f"\n[!] ALERTING VIA NTFY: {message}")
-    for i in range(3):
+    for i in range(1):
         try:
             resp = requests.post(
                 "https://ntfy.sh/odssy_stlyt",
@@ -105,11 +105,9 @@ def trigger_ntfy(message):
                 headers={"Priority": "urgent"},
                 timeout=10
             )
-            print(f"    -> Ntfy ping {i+1}/3 sent! Status: {resp.status_code}")
+            print(f"    -> Ntfy ping {i+1}/1 sent! Status: {resp.status_code}")
         except Exception as e:
             print(f"    -> Ntfy ping {i+1} failed: {e}")
-        if i < 2:
-            time.sleep(15)
 
 def toggle_warp():
     """Toggles Cloudflare WARP on/off and updates the proxy state."""
@@ -313,7 +311,7 @@ def main():
                         human_date = humanize_date(s_date)
                         
                         msg = (
-                            f"ODSY unblock at {rows_str} row. Date: {s_date}. Time: {s_time}. {newly_unblocked_count} seats unblocked.\n\n"
+                            f"ODSY unblock at {rows_str} row. Date: {s_date}. Time: {s_time}. {newly_unblocked_count} seats unblocked."
                             f"{rows_str} rows unblocked for #TheOdyssey at Prasads PCX Screen.\n\n"
                             f"{human_date}, {s_time}"
                         )
