@@ -337,9 +337,9 @@ def main():
                     if newly_unblocked_count >= 6:
                         rows_str = ", ".join(sorted(unblocked_rows_list))
                         human_date = humanize_date(s_date)
-                        
+
                         msg = (
-                            f"ODSY unblock at {rows_str} row. Date: {s_date}. Time: {s_time}. {newly_unblocked_count} seats unblocked."
+                            f"[{newly_unblocked_count}] ODSY PCX."
                             f"{rows_str} rows unblocked for #TheOdyssey at Prasads PCX Screen.\n\n"
                             f"{human_date}, {s_time}"
                         )
