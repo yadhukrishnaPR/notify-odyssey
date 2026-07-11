@@ -32,7 +32,7 @@ on:
         required: false
         default: '11.016845'
   schedule:
-    - cron: '0 */5 * * *'
+    - cron: '*/15 * * * *'
 
 permissions:
   contents: write
