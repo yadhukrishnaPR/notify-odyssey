@@ -193,6 +193,7 @@ def make_bms_request(method, url, max_retries=3, **kwargs):
 
 def fetch_sessions():
     sessions = []
+    date_counts = {}
     for date_code in DATES:
         print(f"\n[NETWORK] Fetching sessions for Date: {date_code}...")
         url = f"https://in.bookmyshow.com/api/movies-data/seatlayout/v1/primary?eventCode={EVENT_CODE}&dateCode={date_code}&regionCode={REGION_CODE}&venueCode={VENUE_CODE}"
@@ -217,15 +218,17 @@ def fetch_sessions():
                     })
                     pcx_count += 1
             print(f"    -> Filtered {pcx_count} {SCREEN_FILTER} sessions for {date_code}.")
+            date_counts[date_code] = pcx_count
             
         except Exception as e:
             if not resp.text.strip():
                 print(f"    -> ℹ️ No data returned for {date_code} (empty response) — likely no listings/bookings open yet for this date. Skipping.")
+                date_counts[date_code] = 0
             else:
                 print(f"    -> JSON Parse error for {date_code}: {e}")
                 print(f"    -> [DEBUG] Raw response body (first 500 chars): {resp.text[:500]!r}")
             
-    return sessions
+    return sessions, date_counts
 
 def fetch_seat_layout(session_id):
     url = "https://services-in.bookmyshow.com/doTrans.aspx"
@@ -285,15 +288,11 @@ def main():
     print("🚀 STARTING BMS SEAT SCRAPER")
     print("==================================================")
     print("Fetching valid sessions...")
-    target_sessions = fetch_sessions()
+    target_sessions, date_counts = fetch_sessions()
     
     total_sessions = len(target_sessions)
     print(f"\n✅ Found a total of {total_sessions} {SCREEN_FILTER} sessions to monitor.")
     print("==================================================")
-    
-    if total_sessions == 0:
-        print("No valid sessions found. Exiting.")
-        return
 
     print("\n[GIT] Loading initial state from repository...")
     state = load_state()
@@ -302,6 +301,37 @@ def main():
         print("[STATE] Empty state found. Initializing baseline silently...")
     else:
         print(f"[STATE] Loaded existing state for {len(state)} sessions.")
+
+    # --- Booking-opened detection ---
+    # Compares today's per-date session count against the last known count
+    # (persisted under the reserved "_booking_watch" key). If a date goes
+    # from 0 -> N sessions, bookings just opened for it, so fire an alert.
+    booking_watch = state.get("_booking_watch", {})
+    watch_deltas = {}
+    for date_code, count in date_counts.items():
+        if date_code in booking_watch:
+            previous_count = booking_watch[date_code]
+            if previous_count == 0 and count > 0:
+                human_date = humanize_date(date_code)
+                print(f"    -> 🎉 Booking just opened for {date_code}! ({count} {SCREEN_FILTER} sessions now listed)")
+                trigger_ntfy(
+                    f"🎬 Booking OPEN for #TheOdyssey at {VENUE_LABEL}!\n\n"
+                    f"{human_date} now has {count} {SCREEN_FILTER} session(s) listed. Go grab tickets!"
+                )
+        else:
+            print(f"    -> [BOOKING WATCH] First time observing {date_code} (count={count}). Establishing baseline, no alert.")
+        watch_deltas[date_code] = count
+
+    if watch_deltas:
+        updated_watch = dict(booking_watch)
+        updated_watch.update(watch_deltas)
+        save_state({"_booking_watch": updated_watch}, commit_msg="Update booking-watch state")
+        # Refresh in-memory state so the rest of this run sees the merged result too
+        state["_booking_watch"] = updated_watch
+
+    if total_sessions == 0:
+        print("No sessions currently open for booking. Will keep checking on future runs. Exiting.")
+        return
 
     cycle_count = 1
     
