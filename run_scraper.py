@@ -8,9 +8,11 @@ import subprocess
 from datetime import datetime
 
 # --- CONFIGURATION ---
-DATES = ["20260717", "20260718", "20260719"]
-VENUE_CODE = "PRHN"
-EVENT_CODE = "ET00452034"
+DATES = ["20260723", "20260724"]
+VENUE_CODE = "BWCB"
+EVENT_CODE = "ET00480917"
+REGION_CODE = "CBE"
+SCREEN_FILTER = "IMAX SCREEN"  # Best-effort guess at BMS's attribute label for IMAX; verify against a live API response
 STATE_FILE = "state.json"
 MAX_RUNTIME_SECONDS = (5 * 3600) + (55 * 60) # 5 hours 55 mins
 
@@ -26,8 +28,8 @@ PROXIES = {
 GET_HEADERS = {
     "Host": "in.bookmyshow.com",
     "Content-Type": "application/json",
-    "X-Latitude": "17.385044",
-    "X-Subregion-Code": "HYD",
+    "X-Latitude": "11.016845",
+    "X-Subregion-Code": "CBE",
     "X-App-Code": "MOBAND2",
     "User-Agent": "Dalvik/2.1.0 (Linux; U; Android 10; Android SDK built for x86_64 Build/QSR1.211112.011)",
     "X-App-Version": "18.2.3",
@@ -38,8 +40,8 @@ GET_HEADERS = {
 POST_HEADERS = {
     "Host": "services-in.bookmyshow.com",
     "X-Timeout": "10",
-    "X-Latitude": "17.385044",
-    "X-Subregion-Code": "HYD",
+    "X-Latitude": "11.016845",
+    "X-Subregion-Code": "CBE",
     "X-App-Code": "MOBAND2",
     "User-Agent": "Dalvik/2.1.0 (Linux; U; Android 10; Android SDK built for x86_64 Build/QSR1.211112.011)",
     "X-App-Version": "18.2.3",
@@ -188,7 +190,7 @@ def fetch_sessions():
     sessions = []
     for date_code in DATES:
         print(f"\n[NETWORK] Fetching sessions for Date: {date_code}...")
-        url = f"https://in.bookmyshow.com/api/movies-data/seatlayout/v1/primary?eventCode={EVENT_CODE}&dateCode={date_code}&regionCode=HYD&venueCode={VENUE_CODE}"
+        url = f"https://in.bookmyshow.com/api/movies-data/seatlayout/v1/primary?eventCode={EVENT_CODE}&dateCode={date_code}&regionCode={REGION_CODE}&venueCode={VENUE_CODE}"
         
         resp = make_bms_request('GET', url, headers=GET_HEADERS)
         if not resp or resp.status_code != 200:
@@ -198,18 +200,18 @@ def fetch_sessions():
         try:
             data = resp.json()
             shows = data.get("data", {}).get("showTimes", [])
-            print(f"    -> Found {len(shows)} total shows for this date. Filtering for PCX SCREEN...")
+            print(f"    -> Found {len(shows)} total shows for this date. Filtering for {SCREEN_FILTER}...")
             
             pcx_count = 0
             for show in shows:
-                if show.get("attributes") == "PCX SCREEN":
+                if show.get("attributes") == SCREEN_FILTER:
                     sessions.append({
                         "sessionId": show["sessionId"],
                         "dateCode": show["showDateCode"],
                         "time": show["showTime"]
                     })
                     pcx_count += 1
-            print(f"    -> Filtered {pcx_count} PCX SCREEN sessions for {date_code}.")
+            print(f"    -> Filtered {pcx_count} {SCREEN_FILTER} sessions for {date_code}.")
             
         except Exception as e:
             print(f"    -> JSON Parse error for {date_code}: {e}")
@@ -269,7 +271,7 @@ def main():
     target_sessions = fetch_sessions()
     
     total_sessions = len(target_sessions)
-    print(f"\n✅ Found a total of {total_sessions} PCX SCREEN sessions to monitor.")
+    print(f"\n✅ Found a total of {total_sessions} {SCREEN_FILTER} sessions to monitor.")
     print("==================================================")
     
     if total_sessions == 0:
