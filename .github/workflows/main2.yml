@@ -6,7 +6,7 @@ on:
       dates:
         description: 'Show dates, comma-separated (YYYYMMDD)'
         required: false
-        default: '20260723,20260724'
+        default: '20260724'
       venue_code:
         description: 'BMS venue code'
         required: false
@@ -22,7 +22,7 @@ on:
       screen_filter:
         description: 'Screen attribute label to filter on (e.g. "IMAX SCREEN", "PCX SCREEN")'
         required: false
-        default: 'IMAX SCREEN'
+        default: 'IMAX Laser 12.1'
       venue_label:
         description: 'Human-readable venue name for the notification text'
         required: false
