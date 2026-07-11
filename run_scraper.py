@@ -8,11 +8,16 @@ import subprocess
 from datetime import datetime
 
 # --- CONFIGURATION ---
-DATES = ["20260723", "20260724"]
-VENUE_CODE = "BWCB"
-EVENT_CODE = "ET00480917"
-REGION_CODE = "CBE"
-SCREEN_FILTER = "IMAX SCREEN"  # Best-effort guess at BMS's attribute label for IMAX; verify against a live API response
+# All of these can be overridden via environment variables (e.g. GitHub Actions
+# workflow_dispatch inputs) without touching this file. Comma-separate multiple
+# dates for DATES, e.g. "20260723,20260724".
+DATES = [d.strip() for d in os.getenv("BMS_DATES", "20260723,20260724").split(",") if d.strip()]
+VENUE_CODE = os.getenv("BMS_VENUE_CODE", "BWCB")
+EVENT_CODE = os.getenv("BMS_EVENT_CODE", "ET00480917")
+REGION_CODE = os.getenv("BMS_REGION_CODE", "CBE")
+SCREEN_FILTER = os.getenv("BMS_SCREEN_FILTER", "IMAX SCREEN")  # Best-effort guess at BMS's attribute label; verify against a live API response
+VENUE_LABEL = os.getenv("BMS_VENUE_LABEL", "Broadway Cinemas Coimbatore (IMAX)")  # Used only in the notification message text
+LATITUDE = os.getenv("BMS_LATITUDE", "11.016845")
 STATE_FILE = "state.json"
 MAX_RUNTIME_SECONDS = (5 * 3600) + (55 * 60) # 5 hours 55 mins
 
@@ -28,8 +33,8 @@ PROXIES = {
 GET_HEADERS = {
     "Host": "in.bookmyshow.com",
     "Content-Type": "application/json",
-    "X-Latitude": "11.016845",
-    "X-Subregion-Code": "CBE",
+    "X-Latitude": LATITUDE,
+    "X-Subregion-Code": REGION_CODE,
     "X-App-Code": "MOBAND2",
     "User-Agent": "Dalvik/2.1.0 (Linux; U; Android 10; Android SDK built for x86_64 Build/QSR1.211112.011)",
     "X-App-Version": "18.2.3",
@@ -40,8 +45,8 @@ GET_HEADERS = {
 POST_HEADERS = {
     "Host": "services-in.bookmyshow.com",
     "X-Timeout": "10",
-    "X-Latitude": "11.016845",
-    "X-Subregion-Code": "CBE",
+    "X-Latitude": LATITUDE,
+    "X-Subregion-Code": REGION_CODE,
     "X-App-Code": "MOBAND2",
     "User-Agent": "Dalvik/2.1.0 (Linux; U; Android 10; Android SDK built for x86_64 Build/QSR1.211112.011)",
     "X-App-Version": "18.2.3",
@@ -201,7 +206,12 @@ def fetch_sessions():
             data = resp.json()
             shows = data.get("data", {}).get("showTimes", [])
             print(f"    -> Found {len(shows)} total shows for this date. Filtering for {SCREEN_FILTER}...")
-            
+
+            # DEBUG: show every distinct 'attributes' value BMS returned for this date,
+            # so we can confirm the exact screen-type label to filter on.
+            seen_attrs = sorted(set(show.get("attributes") for show in shows))
+            print(f"    -> [DEBUG] Distinct attributes seen: {seen_attrs}")
+
             pcx_count = 0
             for show in shows:
                 if show.get("attributes") == SCREEN_FILTER:
@@ -215,6 +225,11 @@ def fetch_sessions():
             
         except Exception as e:
             print(f"    -> JSON Parse error for {date_code}: {e}")
+            # DEBUG: dump the first part of the raw body to see what BMS actually sent back
+            try:
+                print(f"    -> [DEBUG] Raw response body (first 500 chars): {resp.text[:500]!r}")
+            except Exception:
+                pass
             
     return sessions
 
@@ -341,8 +356,8 @@ def main():
                         human_date = humanize_date(s_date)
 
                         msg = (
-                            f"[{newly_unblocked_count}] ODSY PCX."
-                            f"{rows_str} rows unblocked for #TheOdyssey at Prasads PCX Screen.\n\n"
+                            f"[{newly_unblocked_count}] ODSY IMAX. "
+                            f"{rows_str} rows unblocked for #TheOdyssey at {VENUE_LABEL}.\n\n"
                             f"{human_date}, {s_time}"
                         )
                         trigger_ntfy(msg)
