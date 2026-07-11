@@ -2,16 +2,57 @@ name: new scraper
 
 on:
   workflow_dispatch:
-  # schedule:
-  #   - cron: '0 */5 * * *'
+    inputs:
+      dates:
+        description: 'Show dates, comma-separated (YYYYMMDD)'
+        required: false
+        default: '20260723,20260724'
+      venue_code:
+        description: 'BMS venue code'
+        required: false
+        default: 'BWCB'
+      event_code:
+        description: 'BMS event code (movie)'
+        required: false
+        default: 'ET00480917'
+      region_code:
+        description: 'BMS region/subregion code'
+        required: false
+        default: 'CBE'
+      screen_filter:
+        description: 'Screen attribute label to filter on (e.g. "IMAX SCREEN", "PCX SCREEN")'
+        required: false
+        default: 'IMAX SCREEN'
+      venue_label:
+        description: 'Human-readable venue name for the notification text'
+        required: false
+        default: 'Broadway Cinemas Coimbatore (IMAX)'
+      latitude:
+        description: 'Latitude for the venue city (for BMS headers)'
+        required: false
+        default: '11.016845'
+  schedule:
+    - cron: '0 */5 * * *'
 
 permissions:
   contents: write
+
+concurrency:
+  group: bms-scraper
+  cancel-in-progress: false
 
 jobs:
   poll-bms:
     runs-on: ubuntu-latest
     timeout-minutes: 360
+    env:
+      BMS_DATES: ${{ github.event.inputs.dates || vars.BMS_DATES }}
+      BMS_VENUE_CODE: ${{ github.event.inputs.venue_code || vars.BMS_VENUE_CODE }}
+      BMS_EVENT_CODE: ${{ github.event.inputs.event_code || vars.BMS_EVENT_CODE }}
+      BMS_REGION_CODE: ${{ github.event.inputs.region_code || vars.BMS_REGION_CODE }}
+      BMS_SCREEN_FILTER: ${{ github.event.inputs.screen_filter || vars.BMS_SCREEN_FILTER }}
+      BMS_VENUE_LABEL: ${{ github.event.inputs.venue_label || vars.BMS_VENUE_LABEL }}
+      BMS_LATITUDE: ${{ github.event.inputs.latitude || vars.BMS_LATITUDE }}
     
     steps:
       - name: Checkout Repository
