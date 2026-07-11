@@ -15,7 +15,7 @@ DATES = [d.strip() for d in os.getenv("BMS_DATES", "20260723,20260724").split(",
 VENUE_CODE = os.getenv("BMS_VENUE_CODE", "BWCB")
 EVENT_CODE = os.getenv("BMS_EVENT_CODE", "ET00480917")
 REGION_CODE = os.getenv("BMS_REGION_CODE", "CBE")
-SCREEN_FILTER = os.getenv("BMS_SCREEN_FILTER", "IMAX SCREEN")  # Best-effort guess at BMS's attribute label; verify against a live API response
+SCREEN_FILTER = os.getenv("BMS_SCREEN_FILTER", "IMAX Laser 12.1")  # Confirmed via debug run against live BMS response
 VENUE_LABEL = os.getenv("BMS_VENUE_LABEL", "Broadway Cinemas Coimbatore (IMAX)")  # Used only in the notification message text
 LATITUDE = os.getenv("BMS_LATITUDE", "11.016845")
 STATE_FILE = "state.json"
@@ -207,11 +207,6 @@ def fetch_sessions():
             shows = data.get("data", {}).get("showTimes", [])
             print(f"    -> Found {len(shows)} total shows for this date. Filtering for {SCREEN_FILTER}...")
 
-            # DEBUG: show every distinct 'attributes' value BMS returned for this date,
-            # so we can confirm the exact screen-type label to filter on.
-            seen_attrs = sorted(set(show.get("attributes") for show in shows))
-            print(f"    -> [DEBUG] Distinct attributes seen: {seen_attrs}")
-
             pcx_count = 0
             for show in shows:
                 if show.get("attributes") == SCREEN_FILTER:
@@ -224,12 +219,11 @@ def fetch_sessions():
             print(f"    -> Filtered {pcx_count} {SCREEN_FILTER} sessions for {date_code}.")
             
         except Exception as e:
-            print(f"    -> JSON Parse error for {date_code}: {e}")
-            # DEBUG: dump the first part of the raw body to see what BMS actually sent back
-            try:
+            if not resp.text.strip():
+                print(f"    -> ℹ️ No data returned for {date_code} (empty response) — likely no listings/bookings open yet for this date. Skipping.")
+            else:
+                print(f"    -> JSON Parse error for {date_code}: {e}")
                 print(f"    -> [DEBUG] Raw response body (first 500 chars): {resp.text[:500]!r}")
-            except Exception:
-                pass
             
     return sessions
 
@@ -325,7 +319,12 @@ def main():
             if not str_data:
                 print("    -> Error: Received empty strData.")
                 continue
-                
+
+            # DEBUG: dump the raw seat-layout string for the very first session checked,
+            # to verify parse_layout()'s regex actually matches this venue's encoding.
+            if index == 1:
+                print(f"    -> [DEBUG] Raw strData (first 600 chars): {str_data[:600]!r}")
+
             current_seats = parse_layout(str_data)
             current_total = sum(len(seats) for seats in current_seats.values())
             print(f"    -> Parse successful. Current Available Seats: {current_total}")
