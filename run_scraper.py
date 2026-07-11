@@ -261,9 +261,17 @@ def parse_layout(str_data):
         
         available_in_row = []
         for seat in seats:
-            match = re.search(r"A[^2]\d{2}(\d+)\+", seat)
-            if match:
-                available_in_row.append(match.group(1))
+            # Format: A<status_digit><internal_seat_code>+<displayed_seat_number>
+            # status: '1' = available, '2' = unavailable/sold. displayed_seat_number
+            # is the seat label shown in the BMS UI (what we actually want to track).
+            match = re.match(r"A(\d)\d+\+(\d+)", seat)
+            if not match:
+                continue
+            status, displayed_num = match.group(1), match.group(2)
+            if displayed_num == "00":
+                continue  # placeholder slot, no physical seat here
+            if status == "1":
+                available_in_row.append(displayed_num)
                 
         if available_in_row:
             available_seats_by_row[row_letter] = available_in_row
